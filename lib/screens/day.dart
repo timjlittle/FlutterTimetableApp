@@ -51,7 +51,7 @@ class EdittableLesson extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-          color : Colors.white,
+          color : const Color(0xfff3f3db),
           border: Border.all(
               width: 1,
               color: Colors.black
@@ -60,6 +60,29 @@ class EdittableLesson extends StatelessWidget {
       ),
           child: Column(
             children: <Widget>[
+              Row (
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.lightBlueAccent.shade400,
+                      child: Text(timetable.getLessonName(dayNo, lessNo)),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      padding: const EdgeInsets.all(0),
+                      alignment: Alignment.centerRight,
+                      icon: (const Icon(Icons.check)),
+                      color: Colors.green,
+                      onPressed: _localSavePressed,
+                    ),
+                    IconButton(
+                      padding: const EdgeInsets.all(0),
+                      alignment: Alignment.centerRight,
+                      icon: (const Icon(Icons.close)),
+                      color: Colors.red,
+                      onPressed: _localDiscardPressed,
+                    ),
+                  ]
+              ),
 
               Container(
                   padding: EdgeInsets.all(10.0),
@@ -90,24 +113,7 @@ class EdittableLesson extends StatelessWidget {
                   )
               ),
 
-              Row (
-                  children: [
-                    IconButton(
-                      padding: const EdgeInsets.all(0),
-                      alignment: Alignment.centerRight,
-                      icon: (const Icon(Icons.save)),
-                      color: Colors.blue[500],
-                      onPressed: _localSavePressed,
-                    ),
-                    IconButton(
-                      padding: const EdgeInsets.all(0),
-                      alignment: Alignment.centerRight,
-                      icon: (const Icon(Icons.delete)),
-                      color: Colors.blue[500],
-                      onPressed: _localDiscardPressed,
-                    ),
-                  ]
-              )
+
               /*
               RaisedButton(
                 onPressed: () => getItemAndNavigate(context),
@@ -142,8 +148,10 @@ class StaticLesson extends StatelessWidget {
     TimetableModel timetable = Provider.of<TimetableModel>(context);
 
     return Padding(
-    padding: EdgeInsets.all(2.0),
-    child : Container(
+    padding: EdgeInsets.all(1.0),
+    child : GestureDetector(
+      onLongPress: _localEditClick,
+      child:Container(
       decoration: BoxDecoration(
           border: Border.all(
             width: 1,
@@ -159,31 +167,35 @@ class StaticLesson extends StatelessWidget {
     ),
     title:Row (
     children : [
-    Column (
+    Flexible( child:Column (
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
       children : [
-        Text(timetable.getLessonSubject(dayNum, lessNo)),
-        Text(timetable.getLessonRoom(dayNum, lessNo)),
-        ]),
-        Spacer(),
-        IconButton(
-          padding: const EdgeInsets.all(0),
-          alignment: Alignment.centerRight,
-          icon: (const Icon(Icons.edit)),
-          color: Colors.blue[500],
-          onPressed: _localEditClick,
-        ),
+
+            Text(timetable.getLessonSubject(dayNum, lessNo), overflow: TextOverflow.ellipsis,),
+        Text(timetable.getLessonRoom(dayNum, lessNo),overflow: TextOverflow.ellipsis,),
+        ])),
+        // Spacer(),
+        // IconButton(
+        //   padding: const EdgeInsets.all(0),
+        //   alignment: Alignment.centerRight,
+        //   icon: (const Icon(Icons.edit)),
+        //   color: Colors.blue[500],
+        //   onPressed: _localEditClick,
+        // ),
     ]),
       ),
     ),
-    );
+    ));
   }
 
 }
 
 class DayPage extends StatelessWidget {
+  DateTime currentDay;
+  bool showArrows;
 
+  DayPage ({required this.currentDay, required this.showArrows});
 
   @override
   Widget build(BuildContext context) {
@@ -191,18 +203,19 @@ class DayPage extends StatelessWidget {
     //TimetableModel timetable = appState.timetable;
     TimetableModel timetable = Provider.of<TimetableModel>(context);
 
-    DateTime currentDay = appState.currentDay;
-
-    //print ("build day");
-    //print (currentDay.weekday.toString());
-
-    while (currentDay.weekday > 5){
-      currentDay.add(Duration(days:1));
-    }
-
+    // DateTime currentDay = appState.currentDay;
+    //
+    // //print ("build day");
+    // //print (currentDay.weekday.toString());
+    //
+    // while (currentDay.weekday > 5){
+    //   currentDay.add(Duration(days:1));
+    // }
+    //
     int dayNum = currentDay.weekday;
 
     return ListView(
+
       children: [
         Container(
           height: 56.0,
@@ -212,16 +225,16 @@ class DayPage extends StatelessWidget {
                   color: Colors.black
               ),
               borderRadius: BorderRadius.circular(10)),
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(5),
           child: Row (
-            children : [
-            IconButton(
-            padding: const EdgeInsets.all(0),
-            alignment: Alignment.centerRight,
-            icon: (const Icon(Icons.keyboard_double_arrow_left)),
-            color: Colors.black,
-            onPressed: appState.moveRight,
-          ),
+            children : [ if (showArrows)
+              IconButton(
+              padding: const EdgeInsets.all(0),
+              alignment: Alignment.centerRight,
+              icon: (const Icon(Icons.keyboard_double_arrow_left)),
+              color: Colors.black,
+              onPressed: appState.moveRight,
+            ),
           Spacer(),
           Text(DateFormat('EEEEE').format(currentDay),
               textAlign: TextAlign.center, style:const TextStyle(
@@ -229,14 +242,14 @@ class DayPage extends StatelessWidget {
               fontSize: 20.0,
     ),),
               Spacer(),
-
-              IconButton(
-                padding: const EdgeInsets.all(0),
-                alignment: Alignment.centerRight,
-                icon: (const Icon(Icons.keyboard_double_arrow_right)),
-                color: Colors.black,
-                onPressed: appState.moveLeft,
-              ),
+              if (showArrows)
+                IconButton(
+                  padding: const EdgeInsets.all(0),
+                  alignment: Alignment.centerRight,
+                  icon: (const Icon(Icons.keyboard_double_arrow_right)),
+                  color: Colors.black,
+                  onPressed: appState.moveLeft,
+                ),
         ])),
         for (int lessNo = 0; lessNo < timetable.numPeriods; lessNo++)
 

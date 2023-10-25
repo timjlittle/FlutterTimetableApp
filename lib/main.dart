@@ -66,11 +66,11 @@ class MyAppState extends ChangeNotifier {
 
     //print("Swiped");
 
-      if (details.primaryVelocity! > 0) {
+      if (details.primaryVelocity! < 0) {
         moveLeft();
 
         //print ("right: " + currentDay.weekday.toString());
-      } else if (details.primaryVelocity! < 0) {
+      } else if (details.primaryVelocity! > 0) {
         moveRight();
 
         //print ("left: " + currentDay.weekday.toString());
@@ -176,19 +176,46 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    bool isPortrait = false;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tim\'s Timetable App'),
-      ),
-      body: Center(
-    child: GestureDetector(
-        onHorizontalDragEnd: (DragEndDetails details){appState.handleSwipe(details);},
-        child: DayPage()
-    )
+    double width = MediaQuery.of(context).size.width;
 
-      ),
-    );
+    isPortrait = width < 700;
+
+    DateTime currentDay = appState.currentDay;
+
+    if (!isPortrait) {
+      while (currentDay.weekday > 1) {
+        currentDay = currentDay.subtract(Duration(days: 1));
+      }
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Tim\'s Timetable App'),
+        ),
+        body: Center(
+            child: GestureDetector(
+                onHorizontalDragEnd: (DragEndDetails details){appState.handleSwipe(details);},
+                child: WeekPage() //currentDay: currentDay
+
+            )
+
+        ),
+      );
+    } else {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Tim\'s Timetable App'),
+        ),
+        body: Center(
+
+              child:DayPage(currentDay: currentDay, showArrows:true)
+
+
+        ),
+      );
+    }
+
+
   }
 }
 
