@@ -251,6 +251,7 @@ class DayPage extends StatelessWidget {
                   onPressed: appState.moveLeft,
                 ),
         ])),
+
         for (int lessNo = 0; lessNo < timetable.numPeriods; lessNo++)
 
           timetable.getLessonkey(dayNum, lessNo) == appState.toEdit ?

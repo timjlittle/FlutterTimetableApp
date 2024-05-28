@@ -12,9 +12,11 @@ import 'package:provider/provider.dart';
 import 'package:window_size/window_size.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
-
-
-
+//added for sqflite
+import 'dart:async';
+import 'package:flutter/widgets.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 class MyAppState extends ChangeNotifier {
@@ -115,6 +117,8 @@ Future<String> readJSON() async {
   }
 }
 void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
     ChangeNotifierProvider(
