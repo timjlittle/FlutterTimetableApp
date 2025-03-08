@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tt2/models/timetable.dart';
-import 'package:tt2/models/lesson.dart';
 import 'package:tt2/main.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+
+
 
 class EdittableLesson extends StatelessWidget {
   int lessNo;
@@ -32,11 +34,12 @@ class EdittableLesson extends StatelessWidget {
     timetable.setLessonDetails(dayNo, lessNo, _subject.value.text, classroom.value.text, teacher.value.text);
     timetable.save();
 
-     saveFunction ("");
+     saveFunction ("X");
   }
 
   _localDiscardPressed() {
 
+    timetable.readTimeTable();
     saveFunction ("X");
   }
 
@@ -64,9 +67,9 @@ class EdittableLesson extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       backgroundColor: Colors.lightBlueAccent.shade400,
-                      child: Text(timetable.getLessonName(dayNo, lessNo)),
+                      child: Text(timetable.getLessonName(lessNo)),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     IconButton(
                       padding: const EdgeInsets.all(0),
                       alignment: Alignment.centerRight,
@@ -85,44 +88,76 @@ class EdittableLesson extends StatelessWidget {
               ),
 
               Container(
-                  padding: EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: TextField(
                     controller: _subject,
                     autocorrect: false,
                     enabled: true,
-                    decoration: InputDecoration(hintText: 'Subject/Class name'),
+                    decoration: const InputDecoration(hintText: 'Subject/Class name'),
                   )
               ),
 
               Container(
-                  padding: EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: TextField(
                     controller: classroom,
                     autocorrect: false,
-                    decoration: InputDecoration(hintText: 'Classroom'),
+                    decoration: const InputDecoration(hintText: 'Classroom'),
                   )
               ),
 
               Container(
-                  padding: EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: TextField(
                     controller: teacher,
                     autocorrect: false,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         hintText: 'Teacher'),
                   )
               ),
 
+              Container(
+                  padding: const EdgeInsets.all(10.0),
 
-              /*
-              RaisedButton(
-                onPressed: () => getItemAndNavigate(context),
-                color: Color(0xffFF1744),
-                textColor: Colors.white,
-                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                child: Text(
-                    'Click Here To Send All Entered Items To Next Screen'),
-              ),*/
+                  child:ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: timetable.getLessonBackgroundColor(dayNo, lessNo),
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        foregroundColor: Colors.black,
+                        textStyle: TextStyle(
+                            fontWeight: FontWeight.bold)),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Pick a color!'),
+                              content: SingleChildScrollView(
+                                child: MaterialPicker(
+                                  pickerColor: timetable.getLessonBackgroundColor(dayNo, lessNo), //default color
+                                  onColorChanged: (Color color) {
+                                    //on color picked
+                                    timetable.setLessonBGColor(dayNo, lessNo, color);
+
+                                  },
+                                ),
+                              ),
+                              actions: <Widget>[
+                                ElevatedButton(
+                                  child: const Text('DONE'),
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .pop(); //dismiss the color picker
+                                  },
+                                ),
+                              ],
+                            );
+                          });
+                    },
+                    child: const Text("BG Colour"),
+                  )
+              ),
+
 
             ],
           ),
@@ -148,11 +183,12 @@ class StaticLesson extends StatelessWidget {
     TimetableModel timetable = Provider.of<TimetableModel>(context);
 
     return Padding(
-    padding: EdgeInsets.all(1.0),
+    padding: const EdgeInsets.all(1.0),
     child : GestureDetector(
       onLongPress: _localEditClick,
       child:Container(
       decoration: BoxDecoration(
+        color: timetable.getLessonBackgroundColor(dayNum, lessNo ),
           border: Border.all(
             width: 1,
             color: Colors.black
@@ -163,7 +199,7 @@ class StaticLesson extends StatelessWidget {
       child: ListTile(
     leading: CircleAvatar(
     backgroundColor: Colors.lightBlueAccent.shade400,
-      child: Text(timetable.getLessonName(dayNum, lessNo)),
+      child: Text(timetable.getLessonName(lessNo)),
     ),
     title:Row (
     children : [
@@ -195,7 +231,7 @@ class DayPage extends StatelessWidget {
   DateTime currentDay;
   bool showArrows;
 
-  DayPage ({required this.currentDay, required this.showArrows});
+  DayPage ({super.key, required this.currentDay, required this.showArrows});
 
   @override
   Widget build(BuildContext context) {
@@ -235,13 +271,13 @@ class DayPage extends StatelessWidget {
               color: Colors.black,
               onPressed: appState.moveRight,
             ),
-          Spacer(),
+          const Spacer(),
           Text(DateFormat('EEEEE').format(currentDay),
               textAlign: TextAlign.center, style:const TextStyle(
     fontWeight: FontWeight.bold,
               fontSize: 20.0,
     ),),
-              Spacer(),
+              const Spacer(),
               if (showArrows)
                 IconButton(
                   padding: const EdgeInsets.all(0),

@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:tt2/screens/day.dart';
 
 class WeekDayPage extends StatelessWidget {
+  const WeekDayPage({super.key});
+
 
 
   @override
@@ -67,6 +69,8 @@ class WeekDayPage extends StatelessWidget {
 class WeekPage extends StatelessWidget {
   DateTime currentDay = DateTime.now();
 
+  WeekPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -74,7 +78,7 @@ class WeekPage extends StatelessWidget {
 
     //print ("week day");
     while (currentDay.weekday > 1) {
-      currentDay = currentDay.subtract(Duration(days: 1));
+      currentDay = currentDay.subtract(const Duration(days: 1));
       //print(currentDay.weekday);
     }
 

@@ -2,21 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:tt2/common/theme.dart';
 import 'package:tt2/models/timetable.dart';
-import 'package:tt2/models/lesson.dart';
+import 'package:tt2/screens/configDay.dart';
 import 'package:tt2/screens/day.dart';
 import 'package:tt2/screens/week.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:window_size/window_size.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:convert';
 //added for sqflite
 import 'dart:async';
-import 'package:flutter/widgets.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 
 
 class MyAppState extends ChangeNotifier {
@@ -25,6 +19,7 @@ class MyAppState extends ChangeNotifier {
   //TimetableModel timetable = new TimetableModel();
   DateTime currentDay = DateTime.now();
   String toEdit = "";
+  int pageChoice = 0;
 
   MyAppState () {
 
@@ -35,6 +30,11 @@ class MyAppState extends ChangeNotifier {
     }
     //notifyListeners();
 
+  }
+
+  void choosePage (int choice){
+    pageChoice = choice;
+    notifyListeners();
   }
 
   void handleEditClick (String key) {
@@ -92,7 +92,7 @@ Future<String> get _localPath async {
 
 Future<File> get _localFile async {
   final path = await _localPath;
-  print ('$path/timetable.JSON');
+  //print ('$path/timetable.JSON');
   return File('$path/timetable.JSON');
 }
 
@@ -111,7 +111,7 @@ Future<String> readJSON() async {
   }
 
   } catch (e) {
-    print ("Error reading JSON: " + e.toString());
+    print ("Error reading JSON: $e");
     // If encountering an error, return 0
     return "";
   }
@@ -123,7 +123,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider(
       create: (_) => TimetableModel(),
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -155,7 +155,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    TimetableModel timetable = Provider.of<TimetableModel>(context);
+    //TimetableModel timetable = Provider.of<TimetableModel>(context);
+    TimetableModel timetable = context.watch<TimetableModel>();
 
     if (!timetable.dataRead) {
       timetable.readTimeTable();
@@ -169,7 +170,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           //colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         ),
-        home: MyHomePage(),
+        home: const MyHomePage(),
       ),
     );
   }
@@ -177,6 +178,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -187,39 +190,62 @@ class MyHomePage extends StatelessWidget {
     isPortrait = width < 700;
 
     DateTime currentDay = appState.currentDay;
+    int pageChoice = appState.pageChoice;
+
+    void onItemTapped (int index){
+        appState.choosePage(index);
+    }
+
+    StatelessWidget pageToShow = DayPage(currentDay: currentDay, showArrows:true);
 
     if (!isPortrait) {
+      pageToShow = WeekPage();
       while (currentDay.weekday > 1) {
-        currentDay = currentDay.subtract(Duration(days: 1));
+        currentDay = currentDay.subtract(const Duration(days: 1));
       }
+    }
+
+    if (pageChoice == 1){
+      pageToShow = ConfigDay();
+    }
+
       return Scaffold(
         appBar: AppBar(
           title: const Text('Tim\'s Timetable App'),
         ),
+        drawer: Drawer (
+          child: ListView (
+            padding: EdgeInsets.zero,
+            children: [
+
+              ListTile(
+                title: const Text('Timetable'),
+                onTap: () {
+                  onItemTapped(0);
+                  Navigator.pop (context);
+                }
+              ),
+              ListTile(
+                  title: const Text('Day Config'),
+                  onTap: () {
+                    onItemTapped(1);
+                    Navigator.pop (context);
+                  }
+              ),
+            ]
+          )
+        ),
         body: Center(
             child: GestureDetector(
                 onHorizontalDragEnd: (DragEndDetails details){appState.handleSwipe(details);},
-                child: WeekPage() //currentDay: currentDay
+                child: pageToShow //WeekPage() //currentDay: currentDay
 
             )
 
         ),
       );
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Tim\'s Timetable App'),
-        ),
-        body: Center(
-
-              child:DayPage(currentDay: currentDay, showArrows:true)
-
-
-        ),
-      );
     }
 
-
   }
-}
+
 

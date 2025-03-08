@@ -1,20 +1,21 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 //import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
+import 'group.dart';
 import 'lesson.dart';
 import 'package:path_provider/path_provider.dart';
 
 
-/**
- * Timetable class.
- * Contains information about the timetable such as number of lessons
- * plus serialisation
- */
+/// Timetable class.
+/// Contains information about the timetable such as number of lessons
+/// plus serialisation
 class TimetableModel with ChangeNotifier {
   int numPeriods = 6;
+  bool isTwoWeek = false;
   bool dataRead = false;
   List <String> pNames = ["", "P1", "P2", "L", "P3", "P4", "P5"];
 
@@ -24,11 +25,13 @@ class TimetableModel with ChangeNotifier {
   List <LessonModel> thu = [];
   List <LessonModel> fri = [];
 
+  List <GroupModel> classes = [];
+
 
 /*
 Constructors
  */
-  TimetableModel.named ({required this.numPeriods, required this.pNames, required this.mon, required this.tue, required this.wed, required this.thu, required this.fri});
+  TimetableModel.named ({required this.numPeriods, required this.isTwoWeek, required this.pNames, required this.mon, required this.tue, required this.wed, required this.thu, required this.fri, required this.classes});
 
   TimetableModel () {
     numPeriods = 6;
@@ -44,6 +47,50 @@ Constructors
     fri = [];
     _initialiseToEmpty(fri, 5);
   }
+  void setNumPeriods (int pNum){
+    numPeriods = pNum;
+    notifyListeners();
+  }
+
+void updateNumPeriods (int pNum){
+    if (pNum != numPeriods) {
+      //Need to reset the pNames
+
+      int x = pNames.length;
+      if (pNum > numPeriods){
+
+        while (pNames.length < pNum + 1){
+          pNames.add('P${x - 1}');
+          x++;
+
+          LessonModel lesson = LessonModel(1, x);
+          mon.add(lesson);
+          lesson = LessonModel(2, x);
+          tue.add(lesson);
+          lesson = LessonModel(3, x);
+          wed.add(lesson);
+          lesson = LessonModel(4, x);
+          thu.add(lesson);
+          lesson = LessonModel(5, x);
+          fri.add(lesson);
+        }
+      } else {
+        while (pNames.length > pNum + 1){
+          pNames.removeAt(pNames.length - 1);
+        }
+      }
+
+
+        numPeriods = pNum;
+      notifyListeners();
+    }
+}
+
+void setTwoWeek (bool pTwoWeek) {
+    isTwoWeek = pTwoWeek;
+
+    notifyListeners();
+}
 
 void setLessonDetails (int day, int lessNo, String subject, String classroom, String teacher) {
 
@@ -142,6 +189,92 @@ String getLessonSubject (int day, int lessNo) {
     return lesson;
 }
 
+  Color getLessonBackgroundColor (int day, int lessNo) {
+    Color bg = const Color(0xffffffff);;
+
+    switch (day){
+      case 1:
+        if (mon.isEmpty){
+          _initialiseToEmpty(mon, 1);
+        }
+        bg = mon.elementAt(lessNo).bgColour;
+        break;
+
+      case 2:
+        if (tue.isEmpty){
+          _initialiseToEmpty(tue, 2);
+        }
+        bg = tue.elementAt(lessNo).bgColour;
+        break;
+
+      case 3:
+        if (wed.isEmpty){
+          _initialiseToEmpty(wed, 3);
+        }
+        bg = wed.elementAt(lessNo).bgColour;
+        break;
+
+      case 4:
+        if (thu.isEmpty){
+          _initialiseToEmpty(thu, 4);
+        }
+        bg = thu.elementAt(lessNo).bgColour;
+        break;
+
+      case 5:
+        if (fri.isEmpty){
+          _initialiseToEmpty(fri, 5);
+        }
+        bg = fri.elementAt(lessNo).bgColour;
+        break;
+
+    }
+
+    return bg;
+  }
+
+  void setLessonBGColor (int day, int lessNo, Color bgColor){
+    switch (day) {
+      case 1:
+        if (mon.isEmpty){
+          _initialiseToEmpty(mon, 1);
+        }
+        mon.elementAt(lessNo).bgColour = bgColor;
+        break;
+
+      case 2:
+        if (tue.isEmpty){
+          _initialiseToEmpty(tue, 1);
+        }
+        tue.elementAt(lessNo).bgColour = bgColor;
+        break;
+
+      case 3:
+        if (wed.isEmpty){
+          _initialiseToEmpty(wed, 1);
+        }
+        wed.elementAt(lessNo).bgColour = bgColor;
+        break;
+
+      case 4:
+        if (thu.isEmpty){
+          _initialiseToEmpty(thu, 1);
+        }
+        thu.elementAt(lessNo).bgColour = bgColor;
+        break;
+
+      case 5:
+        if (fri.isEmpty){
+          _initialiseToEmpty(fri, 1);
+        }
+        fri.elementAt(lessNo).bgColour = bgColor;
+        break;
+
+
+
+    }
+
+  }
 
   String getLessonkey (int day, int lessNo) {
     String lesson = "";
@@ -275,48 +408,16 @@ String getLessonRoom (int day, int lessNo) {
     return teacher;
   }
 
-  String getLessonName (int day, int lessNo) {
+  String getLessonName (int lessNo) {
     String name = "";
 
-    switch (day){
-      case 1:
-        if (mon.isEmpty){
-          _initialiseToEmpty(mon, 1);
-        }
-        name = mon.elementAt(lessNo).lessonName;
-        break;
-
-      case 2:
-        if (tue.isEmpty){
-          _initialiseToEmpty(tue, 2);
-        }
-        name = tue.elementAt(lessNo).lessonName;
-        break;
-
-      case 3:
-        if (wed.isEmpty){
-          _initialiseToEmpty(wed, 3);
-        }
-        name = wed.elementAt(lessNo).lessonName;
-        break;
-
-      case 4:
-        if (thu.isEmpty){
-          _initialiseToEmpty(thu, 4);
-        }
-        name = thu.elementAt(lessNo).lessonName;
-        break;
-
-      case 5:
-        if (fri.isEmpty){
-          _initialiseToEmpty(fri, 5);
-        }
-        name = fri.elementAt(lessNo).lessonName;
-        break;
-
-    }
+    name = pNames[lessNo + 1];
 
     return name;
+  }
+
+  List <GroupModel> getClasses (){
+    return classes;
   }
 
 
@@ -325,7 +426,7 @@ String getLessonRoom (int day, int lessNo) {
    */
 
   String buildField (String key, String val, bool isString){
-    String field = "\"" + key + "\":";
+    String field = "\"$key\":";
 
     if (isString) {
       field += jsonEncode(val);
@@ -351,7 +452,26 @@ String getLessonRoom (int day, int lessNo) {
 
     //Replace the last comma with the closing ]
     //vals = vals.substring(0,vals.length - 1) + "]";
-    vals = vals + "]";
+    vals = "$vals]";
+
+    return vals;
+  }
+
+  String jsonArrayOfClasses (List<GroupModel> classList){
+    String vals = "[";
+
+    int c = 1;
+    for (GroupModel l in classList){
+      vals += l.toJSON();
+      if (c < classList.length) {
+        vals += ",";
+      }
+      c++;
+    }
+
+    //Replace the last comma with the closing ]
+    //vals = vals.substring(0,vals.length - 1) + "]";
+    vals = "$vals]";
 
     return vals;
   }
@@ -362,6 +482,8 @@ String getLessonRoom (int day, int lessNo) {
     String nameArray = "[";
 
     ret += buildField("numPeriods", numPeriods.toString(), false);
+    ret += ", ";
+    ret += buildField("isTwoWeek", isTwoWeek.toString(), false);
     ret += ", ";
 
     for (int x = 0; x<= numPeriods; x++){
@@ -378,11 +500,13 @@ String getLessonRoom (int day, int lessNo) {
     ret += buildField ("pNames", nameArray, false);
     ret += ", ";
 
-    ret += buildField("mon", jsonArrayOfLessons(mon) , false) + ",";
-    ret += buildField("tue", jsonArrayOfLessons(tue) , false) + ",";
-    ret += buildField("wed", jsonArrayOfLessons(wed) , false) + ",";
-    ret += buildField("thu", jsonArrayOfLessons(thu) , false) + ",";
-    ret += buildField("fri", jsonArrayOfLessons(fri) , false);
+    ret += "${buildField("mon", jsonArrayOfLessons(mon) , false)},";
+    ret += "${buildField("tue", jsonArrayOfLessons(tue) , false)},";
+    ret += "${buildField("wed", jsonArrayOfLessons(wed) , false)},";
+    ret += "${buildField("thu", jsonArrayOfLessons(thu) , false)},";
+    ret += "${buildField("fri", jsonArrayOfLessons(fri) , false)},";
+
+    ret += buildField("classes,", jsonArrayOfClasses(classes), false );
 
     ret += "}";
 
@@ -393,6 +517,11 @@ String getLessonRoom (int day, int lessNo) {
   factory TimetableModel.fromJson(Map<String, dynamic> data) {
     final numPeriods = data["numPeriods"] as int;
     final pNames = data["pNames"] as List<String>;
+    bool twoWeek = false;
+
+    if (data.containsKey("isTwoWeek")){
+      twoWeek = data["isTwoWeek"] as bool;
+    }
 
     final monData = data['mon'] as List<dynamic>;
     final mon = monData.map((monData) => LessonModel.fromJson(monData)).toList();
@@ -409,15 +538,19 @@ String getLessonRoom (int day, int lessNo) {
     final friData = data['fri'] as List<dynamic>;
     final fri = friData.map((friData) => LessonModel.fromJson(friData)).toList();
 
+    final classData = data['classes'] as List<dynamic>;
+    final classes = classData.map((classData) => GroupModel.fromJson(classData)).toList();
 
     return TimetableModel.named (
         numPeriods : numPeriods,
+        isTwoWeek : twoWeek,
         pNames : pNames,
         mon : mon,
         tue : tue,
         wed : wed,
         thu : thu,
-        fri : fri
+        fri : fri,
+        classes : classes
     );
   }
 
@@ -428,7 +561,7 @@ String getLessonRoom (int day, int lessNo) {
       if (pNames.length == numPeriods + 1){
         lesson.lessonName = pNames[period];
       } else {
-        lesson.lessonName = 'P' + period.toString();
+        lesson.lessonName = 'P$period';
       }
 
       dayList.add(lesson);
@@ -518,15 +651,17 @@ String getLessonRoom (int day, int lessNo) {
 
     String data = await _readJSON();
 
-    if (data.length > 0) {
+    if (data.isNotEmpty) {
 
       //print(data);
 
       Map<String, dynamic> jsonMap = jsonDecode (data);
 
-      this.numPeriods = jsonMap["numPeriods"] as int;
+      isTwoWeek = jsonMap["isTwoWeek"] as bool;
+
+      numPeriods = jsonMap["numPeriods"] as int;
       final dayData = jsonMap["pNames"] as List<dynamic>;
-      this.pNames = List<String>.from(dayData);
+      pNames = List<String>.from(dayData);
 
       final monData = jsonMap['mon'] as List<dynamic>;
       mon = monData.map((monData) => LessonModel.fromJson(monData)).toList();
@@ -543,8 +678,16 @@ String getLessonRoom (int day, int lessNo) {
       final friData = jsonMap['fri'] as List<dynamic>;
       fri = friData.map((friData) => LessonModel.fromJson(friData)).toList();
 
+      if (jsonMap.containsKey('classes')) {
+        final classData = jsonMap['classes'] as List<dynamic>;
+        classes = classData.map((classData) =>
+            GroupModel.fromJson(classData)).toList();
+      } else {
+        classes = [];
+      }
+
     }
-    this.dataRead = true;
+    dataRead = true;
 
     notifyListeners();
   }
